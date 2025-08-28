@@ -1,71 +1,52 @@
 from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from datetime import datetime
-import os
+from backend.models import db, Product, ContactMessage
+from backend.service import fetch_all_products, add_product, modify_product, remove_product, fetch_all_contact_messages, add_contact_message, remove_contact_message
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///inventory.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+db.init_app(app)
 CORS(app)  # Permite peticiones desde React
 
-# Modelo de Producto
-class Product(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    quantity = db.Column(db.Integer, nullable=False)
-    price = db.Column(db.Float, nullable=False)
-    min_stock = db.Column(db.Integer, default=5)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'quantity': self.quantity,
-            'price': self.price,
-            'minStock': self.min_stock,
-            'created_at': self.created_at.isoformat()
-        }
-
-# Rutas API
+# Rutas API para productos
 @app.route('/api/products', methods=['GET'])
 def get_products():
-    products = Product.query.all()
+    products = fetch_all_products()
     return jsonify([product.to_dict() for product in products])
 
 @app.route('/api/products', methods=['POST'])
 def create_product():
     data = request.get_json()
-    product = Product(
-        name=data['name'],
-        quantity=data['quantity'],
-        price=data['price'],
-        min_stock=data.get('minStock', 5)
-    )
-    db.session.add(product)
-    db.session.commit()
+    product = add_product(data)
     return jsonify(product.to_dict()), 201
 
 @app.route('/api/products/<int:id>', methods=['PUT'])
 def update_product(id):
-    product = Product.query.get_or_404(id)
     data = request.get_json()
-    
-    product.name = data['name']
-    product.quantity = data['quantity']
-    product.price = data['price']
-    product.min_stock = data.get('minStock', 5)
-    
-    db.session.commit()
+    product = modify_product(id, data)
     return jsonify(product.to_dict())
 
 @app.route('/api/products/<int:id>', methods=['DELETE'])
 def delete_product(id):
-    product = Product.query.get_or_404(id)
-    db.session.delete(product)
-    db.session.commit()
+    remove_product(id)
+    return '', 204
+
+# Rutas API para mensajes de contacto
+@app.route('/api/contact-messages', methods=['GET'])
+def get_contact_messages():
+    messages = fetch_all_contact_messages()
+    return jsonify([message.to_dict() for message in messages])
+
+@app.route('/api/contact-messages', methods=['POST'])
+def create_contact_message():
+    data = request.get_json()
+    message = add_contact_message(data)
+    return jsonify(message.to_dict()), 201
+
+@app.route('/api/contact-messages/<int:id>', methods=['DELETE'])
+def delete_contact_message(id):
+    remove_contact_message(id)
     return '', 204
 
 if __name__ == '__main__':
