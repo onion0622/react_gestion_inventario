@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\miste\OneDrive\Escritorio\react_gestion_inventario\backend\venv
+set VIRTUAL_ENV=C:\Users\ASPIRE 3\OneDrive\Escritorio\taller linda\react_gestion_inventario\backend\venv
 
 if not defined PROMPT set PROMPT=$P$G
 

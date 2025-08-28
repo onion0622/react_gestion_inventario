@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inventory-config
+data:
+  DATABASE_URL: "sqlite:///inventory.db"
+  FLASK_ENV: "development"
+  NODE_ENV: "development"
